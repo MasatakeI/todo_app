@@ -9,7 +9,15 @@ import {
 } from "../../models/TodoModel";
 
 import { ModelError, MODEL_ERROR_CODE } from "../../models/errors/ModelError";
-import { addDoc, getDoc, getDocs, query } from "firebase/firestore";
+import {
+  addDoc,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+} from "firebase/firestore";
 
 vi.mock("firebase/firestore", () => ({
   addDoc: vi.fn(),
@@ -25,7 +33,7 @@ vi.mock("firebase/firestore", () => ({
   collection: vi.fn(),
 }));
 
-const mockDocRef = { id: 123 };
+const mockDocRef = { id: "123" };
 const mockSnapShot = {
   exists: () => true,
   data: () => ({
@@ -81,7 +89,7 @@ describe("TodoModel", () => {
       const result = await saveTodo({ body: mockSnapShot.data().body });
 
       expect(result).toEqual({
-        id: 123,
+        id: "123",
         body: "test body",
         date: "2020/01/01 12:00",
         completed: false,
@@ -141,6 +149,8 @@ describe("TodoModel", () => {
           completed: false,
         },
       ]);
+
+      expect(query).toHaveBeenCalledTimes(1);
     });
 
     test("データベースに配列が存在しない場合,空配列を返す", async () => {
@@ -182,10 +192,103 @@ describe("TodoModel", () => {
   });
 
   describe("deleteTodo", () => {
-    test("成功:", async () => {});
+    test("成功:削除したTodoオブジェクトを返す", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue(mockSnapShot);
+      deleteDoc.mockResolvedValue();
+
+      const result = await deleteTodo(mockDocRef.id);
+      expect(result).toEqual({
+        id: "123",
+        body: "test body",
+        date: "2020/01/01 12:00",
+        completed: false,
+      });
+      expect(doc).toHaveBeenCalledTimes(1);
+
+      expect(getDoc).toHaveBeenCalledWith(mockDocRef);
+      expect(deleteDoc).toHaveBeenCalledWith(mockDocRef);
+    });
+
+    test("データベースのデータが存在しない場合,ModelErrorをスローする", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue({ exists: () => false });
+
+      await expect(deleteTodo(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.NOT_FOUND,
+      });
+
+      expect(deleteDoc).not.toHaveBeenCalled();
+    });
+
+    test("deleteDocが失敗の場合", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue(mockSnapShot);
+      deleteDoc.mockRejectedValue(new ModelError("deleteDoc error"));
+
+      await expect(deleteTodo(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.UNKNOWN,
+      });
+
+      expect(deleteDoc).toHaveBeenCalledWith(mockDocRef);
+    });
+    test("getDocが失敗の場合", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockRejectedValue(new ModelError("getDoc error"));
+
+      await expect(deleteTodo(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.UNKNOWN,
+      });
+
+      expect(deleteDoc).not.toHaveBeenCalled();
+    });
   });
 
   describe("toggleTodo", () => {
-    test("成功:", async () => {});
+    test("成功:toggle後のTodoオブジェクトを返す", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue(mockSnapShot);
+      updateDoc.mockResolvedValue();
+
+      const result = await toggleTodo(mockDocRef.id);
+      expect(result).toEqual({
+        id: "123",
+        body: "test body",
+        date: "2020/01/01 12:00",
+        completed: true,
+      });
+
+      expect(getDoc).toHaveBeenCalledWith(mockDocRef);
+      expect(updateDoc).toHaveBeenCalledWith(mockDocRef, { completed: true });
+    });
+
+    test("データベースのデータが存在しない場合,ModelErrorをスローする", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue({ exists: () => false });
+
+      await expect(toggleTodo(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.NOT_FOUND,
+      });
+    });
+
+    test("updateDocが失敗の場合", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue(mockSnapShot);
+      updateDoc.mockRejectedValue(new ModelError("updateDoc error"));
+
+      await expect(toggleTodo(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.UNKNOWN,
+      });
+    });
+    test("getDocが失敗の場合", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockRejectedValue(new ModelError("getDoc error"));
+
+      await expect(toggleTodo(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.UNKNOWN,
+      });
+
+      expect(updateDoc).not.toHaveBeenCalled();
+    });
   });
 });
