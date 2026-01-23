@@ -6,9 +6,9 @@ import {
   fetchTodos,
   deleteTodo,
   toggleTodo,
-} from "../../models/TodoModel";
+} from "@/models/TodoModel";
 
-import { ModelError, MODEL_ERROR_CODE } from "../../models/errors/ModelError";
+import { ModelError, MODEL_ERROR_CODE } from "@/models/errors/ModelError";
 import {
   addDoc,
   deleteDoc,
