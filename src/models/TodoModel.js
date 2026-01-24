@@ -12,7 +12,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-import { todosCollectionRef } from "../firebase";
+import { todosCollectionRef } from "@/firebase";
 import { MODEL_ERROR_CODE, ModelError } from "./errors/ModelError";
 
 import { format } from "date-fns";
