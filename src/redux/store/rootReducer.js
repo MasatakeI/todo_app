@@ -2,12 +2,12 @@
 
 import { combineReducers } from "@reduxjs/toolkit";
 
-import todosRedcuer from "../features/todos/todosSlice";
+import todosReducer from "../features/todos/todosSlice";
 import snackbarReducer from "../features/snackbar/snackbarSlice";
 import filterReducer from "../features/filter/filterSlice";
 
 export const rootReducer = combineReducers({
-  todos: todosRedcuer,
+  todos: todosReducer,
   snackbar: snackbarReducer,
   filter: filterReducer,
 });

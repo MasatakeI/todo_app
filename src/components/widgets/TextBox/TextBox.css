@@ -1,0 +1,16 @@
+.textbox {
+  margin-bottom: 20px;
+}
+.textbox-input {
+  width: 100%;
+  resize: none;
+  padding: 5px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  margin: 20px 0;
+  height: 80px;
+}
+
+.textbox-input::placeholder {
+  font-size: 0.8rem;
+}

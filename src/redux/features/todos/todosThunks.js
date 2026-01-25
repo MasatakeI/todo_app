@@ -11,7 +11,7 @@ import { showSnackbar } from "../snackbar/snackbarSlice";
 import { mapTodoErrorToModelError } from "./mapTodoErrorToModelError";
 
 export const saveTodoAsync = createModelThunk(
-  "todos/saveTods",
+  "todos/saveTodo",
   async ({ body }, thunkApi) => {
     try {
       const todo = await saveTodo({ body });

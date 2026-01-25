@@ -32,8 +32,6 @@ const fitlerSlice = createSlice({
   },
 });
 
-export const selectFilterType = (state) => state.filter.filterType;
-
 export const { setFilterType } = fitlerSlice.actions;
 
 export default fitlerSlice.reducer;

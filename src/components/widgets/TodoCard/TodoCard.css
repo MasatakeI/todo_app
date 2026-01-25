@@ -1,0 +1,31 @@
+.todo-card {
+  background-color: aliceblue;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.todo-button-container {
+  display: flex;
+  gap: 12px;
+}
+
+.todo-button {
+  border: none;
+  background-color: inherit;
+  cursor: pointer;
+}
+
+.todo-button.delete:hover {
+  color: red;
+}
+.todo-button.toggle:hover {
+  color: green;
+}
