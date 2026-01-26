@@ -12,7 +12,7 @@ import { useTodoList } from "./useTodoList";
 const TodoList = () => {
   const {
     isLoading,
-    error,
+
     filteredTodos,
     modalMessage,
     modalOpen,
@@ -25,7 +25,6 @@ const TodoList = () => {
   const messagesContent = () => {
     if (isLoading) return <LoadingSpinner />;
 
-    if (error) return <p>{error.message}</p>;
     if (filteredTodos.length === 0)
       return <p className="no-message">todos:0件</p>;
 

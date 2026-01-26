@@ -32,7 +32,7 @@ export default function SimpleSnackbar({ isOpen, onClose, message }) {
     <div>
       <Snackbar
         open={isOpen}
-        autoHideDuration={3000}
+        autoHideDuration={2000}
         onClose={handleClose}
         message={message}
         action={action}

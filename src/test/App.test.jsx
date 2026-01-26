@@ -9,6 +9,8 @@ import { filterInitialState } from "@/redux/features/filter/filterSlice";
 
 import todosReducer from "@/redux/features/todos/todosSlice";
 import filterReducer from "@/redux/features/filter/filterSlice";
+import snackbarReducer from "@/redux/features/snackbar/snackbarSlice";
+import { snackbarInitialState } from "@/redux/features/snackbar/snackbarSlice";
 
 vi.mock("@/components/page/Home/Home", () => ({
   default: () => <div data-testid="home" />,
@@ -22,6 +24,9 @@ vi.mock("@/components/layout/Header/Header", () => ({
 vi.mock("@/components/layout/Footer/Footer", () => ({
   default: () => <div data-testid="footer" />,
 }));
+vi.mock("@/components/common/SimpleSnackbar/SimpleSnackbar", () => ({
+  default: () => <div data-testid="snackbar" />,
+}));
 
 describe("App", () => {
   beforeEach(() => {
@@ -30,10 +35,15 @@ describe("App", () => {
 
   test("Header/Footer が常に描画される", () => {
     renderWithStore(<App />, {
-      reducers: { todos: todosReducer, filter: filterReducer },
+      reducers: {
+        todos: todosReducer,
+        filter: filterReducer,
+        snackbar: snackbarReducer,
+      },
       preloadedState: {
         todos: { ...todosInitialState },
         filter: { ...filterInitialState },
+        snackbar: { ...snackbarInitialState },
       },
     });
 
@@ -44,7 +54,11 @@ describe("App", () => {
   test("Mainページをルートとして表示できる", () => {
     window.location.hash = "#/main";
     renderWithStore(<App />, {
-      reducers: { todos: todosReducer, filter: filterReducer },
+      reducers: {
+        todos: todosReducer,
+        filter: filterReducer,
+        snackbar: snackbarReducer,
+      },
       preloadedState: {
         todos: { ...todosInitialState },
         filter: { ...filterInitialState },

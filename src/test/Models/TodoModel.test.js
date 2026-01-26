@@ -98,7 +98,7 @@ describe("TodoModel", () => {
 
     test("bodyが空の場合:ModelErrorをスローする", async () => {
       await expect(saveTodo({ body: " " })).rejects.toThrow(
-        new ModelError(MODEL_ERROR_CODE.REQUIRED),
+        new ModelError(MODEL_ERROR_CODE.REQUIRED, "1文字以上の入力必須です"),
       );
     });
 

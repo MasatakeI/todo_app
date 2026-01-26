@@ -24,7 +24,10 @@ export const useTodoList = () => {
 
   const closeModal = () => setModalOpen(false);
 
-  const openModal = (todo) => {
+  const openModal = (id) => {
+    const todo = filteredTodos.find((t) => t.id === id);
+    if (!todo) return;
+
     setModalOpen(true);
     setTargetId(todo.id);
     setModalMessage(todo.body);

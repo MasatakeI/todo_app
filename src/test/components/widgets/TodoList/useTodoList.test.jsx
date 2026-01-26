@@ -56,7 +56,7 @@ describe("useTodoList", () => {
     const { result } = renderHook(() => useTodoList(), { wrapper });
 
     await act(async () => {
-      result.current.openModal(mockTodos[0]);
+      result.current.openModal(mockTodos[0].id);
     });
     await act(async () => {
       result.current.confirmDelete();

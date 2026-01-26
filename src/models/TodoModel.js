@@ -39,7 +39,7 @@ export const createTodo = (id, data) => {
 
 export const saveTodo = async ({ body }) => {
   if (!body.trim()) {
-    throw new ModelError(MODEL_ERROR_CODE.REQUIRED);
+    throw new ModelError(MODEL_ERROR_CODE.REQUIRED, "1文字以上の入力必須です");
   }
 
   const postData = {

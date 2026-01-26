@@ -76,23 +76,6 @@ describe("TodoList", () => {
     }).toBeInTheDocument();
   });
 
-  test("fetchが失敗した時,エラーメッセージが表示される", () => {
-    renderWithStore(<TodoList />, {
-      reducers: { todos: todosReducer, filter: filterReducer },
-      preloadedState: {
-        todos: {
-          isLoading: false,
-          todos: [],
-          error: { message: "エラー" },
-        },
-        filter: {
-          filterType: FILTER_ALL,
-        },
-      },
-    });
-
-    expect(screen.getByText("エラー")).toBeInTheDocument();
-  });
   describe("指定されたfilterTypeのtodoのみ表示される", () => {
     test.each([
       {
