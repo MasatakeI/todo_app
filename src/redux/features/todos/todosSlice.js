@@ -5,7 +5,8 @@ import {
   deleteTodoAsync,
   fetchTodosAsync,
   saveTodoAsync,
-  toggleTodoAsync,
+  togglePinAsync,
+  toggleCompletedAsync,
 } from "./todosThunks";
 
 export const todosInitialState = {
@@ -56,11 +57,23 @@ const todosSlice = createSlice({
         state.error = null;
       })
 
-      //toggleTodo
-      .addCase(toggleTodoAsync.pending, (state, action) => {
+      //toggleCompleted
+      .addCase(toggleCompletedAsync.pending, (state, action) => {
         state.isToggling = true;
       })
-      .addCase(toggleTodoAsync.fulfilled, (state, action) => {
+      .addCase(toggleCompletedAsync.fulfilled, (state, action) => {
+        state.isToggling = false;
+        state.todos = state.todos.map((todo) =>
+          todo.id === action.payload.id ? action.payload : todo,
+        );
+        state.error = null;
+      })
+
+      //togglePin
+      .addCase(togglePinAsync.pending, (state, action) => {
+        state.isToggling = true;
+      })
+      .addCase(togglePinAsync.fulfilled, (state, action) => {
         state.isToggling = false;
         state.todos = state.todos.map((todo) =>
           todo.id === action.payload.id ? action.payload : todo,
@@ -74,6 +87,7 @@ const todosSlice = createSlice({
         state.isLoading = false;
         state.isDeleting = false;
         state.isToggling = false;
+
         state.error = action.payload;
       });
   },

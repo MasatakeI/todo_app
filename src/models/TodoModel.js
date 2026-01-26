@@ -22,8 +22,10 @@ export const createTodo = (id, data) => {
     !data ||
     !data.body ||
     !data.date ||
+    typeof data.body !== "string" ||
     typeof data.date.toDate !== "function" ||
-    typeof data.completed !== "boolean"
+    typeof data.completed !== "boolean" ||
+    typeof data.pinned !== "boolean"
   ) {
     throw new ModelError(MODEL_ERROR_CODE.INVALID_DATA);
   }
@@ -34,6 +36,7 @@ export const createTodo = (id, data) => {
     body: data.body,
     date: dateObj,
     completed: data.completed,
+    pinned: data.pinned,
   };
 };
 
@@ -46,6 +49,7 @@ export const saveTodo = async ({ body }) => {
     body,
     date: serverTimestamp(),
     completed: false,
+    pinned: false,
   };
 
   const docRef = await addDoc(todosCollectionRef, postData);
@@ -89,7 +93,7 @@ export const deleteTodo = async (id) => {
   return model;
 };
 
-export const toggleTodo = async (id) => {
+export const toggleCompleted = async (id) => {
   const docRef = doc(todosCollectionRef, id);
 
   const snapShot = await getDoc(docRef);
@@ -105,6 +109,26 @@ export const toggleTodo = async (id) => {
   const model = createTodo(docRef.id, {
     ...data,
     completed: !data.completed,
+  });
+  return model;
+};
+
+export const togglePin = async (id) => {
+  const docRef = doc(todosCollectionRef, id);
+
+  const snapShot = await getDoc(docRef);
+
+  if (!snapShot.exists()) {
+    throw new ModelError(MODEL_ERROR_CODE.NOT_FOUND);
+  }
+
+  const data = snapShot.data();
+
+  await updateDoc(docRef, { pinned: !data.pinned });
+
+  const model = createTodo(docRef.id, {
+    ...data,
+    pinned: !data.pinned,
   });
   return model;
 };

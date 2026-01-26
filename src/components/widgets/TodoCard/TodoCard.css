@@ -5,6 +5,15 @@
   margin: 10px 0;
 }
 
+.todo-card.pinned {
+  border: 1px solid red;
+}
+
+.todo-card.completed {
+  background-color: #eee;
+  font-style: italic;
+}
+
 .todo-header {
   display: flex;
   justify-content: space-between;
@@ -28,4 +37,19 @@
 }
 .todo-button.toggle:hover {
   color: green;
+}
+
+.todo-button.pinned:hover {
+  color: rgb(6, 157, 244);
+}
+
+.todo-body {
+  text-align: left;
+  word-break: break-all;
+  letter-spacing: 0.05rem;
+}
+
+.todo-body.completed,
+.todo-date.completed {
+  text-decoration: red line-through;
 }

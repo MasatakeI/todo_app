@@ -9,7 +9,8 @@ import { selectFilteredTodos } from "@/redux/features/filter/filterSelector";
 
 import {
   deleteTodoAsync,
-  toggleTodoAsync,
+  togglePinAsync,
+  toggleCompletedAsync,
 } from "@/redux/features/todos/todosThunks";
 
 export const useTodoList = () => {
@@ -39,7 +40,11 @@ export const useTodoList = () => {
   };
 
   const toggleTodo = (id) => {
-    dispatch(toggleTodoAsync({ id }));
+    dispatch(toggleCompletedAsync({ id }));
+  };
+
+  const togglePin = (id) => {
+    dispatch(togglePinAsync({ id }));
   };
 
   return {
@@ -52,5 +57,6 @@ export const useTodoList = () => {
     openModal,
     confirmDelete,
     toggleTodo,
+    togglePin,
   };
 };

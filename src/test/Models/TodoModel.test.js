@@ -5,7 +5,8 @@ import {
   saveTodo,
   fetchTodos,
   deleteTodo,
-  toggleTodo,
+  toggleCompleted,
+  togglePin,
 } from "@/models/TodoModel";
 
 import { ModelError, MODEL_ERROR_CODE } from "@/models/errors/ModelError";
@@ -40,6 +41,7 @@ const mockSnapShot = {
     body: "test body",
     date: { toDate: () => new Date("2020-01-01T12:00:00") },
     completed: false,
+    pinned: false,
   }),
 };
 
@@ -47,6 +49,7 @@ const baseData = {
   body: "test body",
   date: { toDate: () => new Date("2020-01-01T12:00:00") },
   completed: false,
+  pinned: false,
 };
 
 describe("TodoModel", () => {
@@ -65,6 +68,7 @@ describe("TodoModel", () => {
         body: "test body",
         date: "2020/01/01 12:00",
         completed: false,
+        pinned: false,
       });
     });
 
@@ -93,6 +97,7 @@ describe("TodoModel", () => {
         body: "test body",
         date: "2020/01/01 12:00",
         completed: false,
+        pinned: false,
       });
     });
 
@@ -147,6 +152,7 @@ describe("TodoModel", () => {
           body: "test body",
           date: "2020/01/01 12:00",
           completed: false,
+          pinned: false,
         },
       ]);
 
@@ -203,6 +209,7 @@ describe("TodoModel", () => {
         body: "test body",
         date: "2020/01/01 12:00",
         completed: false,
+        pinned: false,
       });
       expect(doc).toHaveBeenCalledTimes(1);
 
@@ -244,18 +251,19 @@ describe("TodoModel", () => {
     });
   });
 
-  describe("toggleTodo", () => {
+  describe("toggleCompleted", () => {
     test("成功:toggle後のTodoオブジェクトを返す", async () => {
       doc.mockReturnValue(mockDocRef);
       getDoc.mockResolvedValue(mockSnapShot);
       updateDoc.mockResolvedValue();
 
-      const result = await toggleTodo(mockDocRef.id);
+      const result = await toggleCompleted(mockDocRef.id);
       expect(result).toEqual({
         id: "123",
         body: "test body",
         date: "2020/01/01 12:00",
         completed: true,
+        pinned: false,
       });
 
       expect(getDoc).toHaveBeenCalledWith(mockDocRef);
@@ -266,7 +274,7 @@ describe("TodoModel", () => {
       doc.mockReturnValue(mockDocRef);
       getDoc.mockResolvedValue({ exists: () => false });
 
-      await expect(toggleTodo(1)).rejects.toMatchObject({
+      await expect(toggleCompleted(1)).rejects.toMatchObject({
         code: MODEL_ERROR_CODE.NOT_FOUND,
       });
     });
@@ -276,7 +284,7 @@ describe("TodoModel", () => {
       getDoc.mockResolvedValue(mockSnapShot);
       updateDoc.mockRejectedValue(new ModelError("updateDoc error"));
 
-      await expect(toggleTodo(1)).rejects.toMatchObject({
+      await expect(toggleCompleted(1)).rejects.toMatchObject({
         code: MODEL_ERROR_CODE.UNKNOWN,
       });
     });
@@ -284,7 +292,56 @@ describe("TodoModel", () => {
       doc.mockReturnValue(mockDocRef);
       getDoc.mockRejectedValue(new ModelError("getDoc error"));
 
-      await expect(toggleTodo(1)).rejects.toMatchObject({
+      await expect(toggleCompleted(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.UNKNOWN,
+      });
+
+      expect(updateDoc).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("togglePin", () => {
+    test("成功:togglePin後のTodoオブジェクトを返す", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue(mockSnapShot);
+      updateDoc.mockResolvedValue();
+
+      const result = await togglePin(mockDocRef.id);
+      expect(result).toEqual({
+        id: "123",
+        body: "test body",
+        date: "2020/01/01 12:00",
+        completed: false,
+        pinned: true,
+      });
+
+      expect(getDoc).toHaveBeenCalledWith(mockDocRef);
+      expect(updateDoc).toHaveBeenCalledWith(mockDocRef, { pinned: true });
+    });
+
+    test("データベースのデータが存在しない場合,ModelErrorをスローする", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue({ exists: () => false });
+
+      await expect(togglePin(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.NOT_FOUND,
+      });
+    });
+
+    test("updateDocが失敗の場合", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockResolvedValue(mockSnapShot);
+      updateDoc.mockRejectedValue(new ModelError("updateDoc error"));
+
+      await expect(togglePin(1)).rejects.toMatchObject({
+        code: MODEL_ERROR_CODE.UNKNOWN,
+      });
+    });
+    test("getDocが失敗の場合", async () => {
+      doc.mockReturnValue(mockDocRef);
+      getDoc.mockRejectedValue(new ModelError("getDoc error"));
+
+      await expect(togglePin(1)).rejects.toMatchObject({
         code: MODEL_ERROR_CODE.UNKNOWN,
       });
 

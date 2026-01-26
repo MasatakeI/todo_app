@@ -1,22 +1,27 @@
-# Todoアプリ（React / Redux Toolkit / Firebase）
+# Todoアプリ（React / Redux Toolkit / Vitest）
 
 ## 概要
 
-本プロジェクトは **Firebase Firestore** をバックエンドに利用した Todo アプリです。
+本プロジェクトは **React + Redux Toolkit** を用いて実装した Todo 管理アプリです。
+「責務分離」「テストしやすい設計」「段階的な実装」を重視して構築しています。
 
-現時点では、**Model 層の実装および単体テストが完了**しており、
-外部サービス（Firestore）とのやり取りやドメインルールを安全に扱える設計を構築しています。
+- Todo の追加 / 削除 / 完了切り替え
+- フィルタリング（全件 / 未完了 / 完了）
+- 非同期処理（save,fetch / delete / toggle）
+- エラー通知（Snackbar）
 
-UI や Redux 層は今後実装予定であり、
-本 README は **Model 実装完了時点での設計思想と責務**を明確にすることを目的としています。
+UI・状態管理・副作用を明確に分離し、**Widget / Page / Hook / Redux** の役割がはっきりした構成になっています。
 
 ---
 
-## 技術スタック
+## 使用技術
 
-- JavaScript (ES2022)
-- Firebase Firestore
-- Vitest
+- **React**
+- **Redux Toolkit**
+- **React Router（HashRouter）**
+- **Vitest**
+- **React Testing Library**
+- **Material UI（Snackbar / Modal など）**
 
 ---
 
@@ -24,165 +29,84 @@ UI や Redux 層は今後実装予定であり、
 
 ```
 src/
-├─ models/
-│  ├─ TodoModel.js
-│  └─ errors/
-│     └─ ModelError.js
+├─ components/
+│  ├─ common/        # Button, Modal, Snackbar などの汎用UI
+│  ├─ widgets/       # TodoList, TodoCard, Filter など
+│  ├─ page/          # Home, Main（ルーティング単位）
+│  └─ layout/        # Header, Footer
 │
-└─ test/
-   └─ Models/
-      └─ TodoModel.test.js
+├─ redux/
+│  ├─ features/
+│  │  ├─ todos/      # todosSlice, thunks, selectors
+│  │  ├─ filter/     # filterSlice, selectors
+│  │  └─ snackbar/   # snackbarSlice
+│  └─ store.js
+│
+├─ test/
+│  ├─ components/    # コンポーネント / hook テスト
+│  ├─ redux/         # slice / selector テスト
+│  └─ utils/         # renderWithStore など
 ```
 
 ---
 
 ## 設計方針
 
-### 1. Model 層をドメインの防波堤として扱う
+### 1. 責務分離
 
-Model 層は以下の責務のみを持ちます。
+- **Page**: 画面単位・ルーティング単位の責務
+- **Widget**: UI とユーザー操作
+- **Custom Hook**: UI から切り離したロジック（例: `useTodoList`）
+- **Redux**: グローバルな状態・副作用管理
 
-- Firestore との直接的な通信
-- データ構造の検証と整形
-- 外部 SDK の例外をアプリ用エラーに正規化
-
-Redux や UI 層は **Model が返すデータは常に正しい** という前提で実装できるよう設計しています。
-
----
-
-### 2. 外部エラーの正規化（ModelError）
-
-Firestore やその他外部 API が投げる例外は、
-すべて `ModelError` に変換してから上位層へ返却します。
-
-```js
-export const MODEL_ERROR_CODE = {
-  VALIDATION: "VALIDATION",
-  REQUIRED: "REQUIRED",
-  INVALID_DATA: "INVALID_DATA",
-  NOT_FOUND: "NOT_FOUND",
-  NETWORK: "NETWORK",
-  UNKNOWN: "UNKNOWN",
-};
-```
-
-- UI / Redux は `code` のみを見て制御可能
-- エラーメッセージや実装変更にテストが依存しない
-- i18n や表示切り替えが容易
+UI コンポーネントは Redux を直接操作せず、Hook 経由で振る舞います。
 
 ---
 
-### 3. Model は "壊れたデータ" を返さない
+### 2. 非同期処理の扱い
 
-Firestore から取得したデータであっても、
-以下の条件を満たさない場合は **即座に例外をスロー** します。
-
-- 必須フィールドが存在しない
-- 型が想定と異なる
-- ビジネスルールに違反している
-
-これにより、アプリ全体で以下を保証します。
-
-> "UI に渡るデータは常に安全である"
+- Redux Toolkit の `createAsyncThunk` を使用
+- 成功 / 失敗の責務は slice 側で管理
+- エラーは Snackbar 用 slice に集約
 
 ---
 
-## 実装済み Model API
+### 3. テスト戦略
 
-### createTodo
+#### テストの粒度
 
-```ts
-createTodo(id: string | number, data: unknown): Todo
-```
+| 対象        | テスト内容               |
+| ----------- | ------------------------ |
+| Widget      | 表示・イベント発火       |
+| Custom Hook | dispatch / state 制御    |
+| Redux Slice | reducer / thunk          |
+| Page        | mount 時の副作用・構成   |
+| App         | ルーティング・レイアウト |
 
-- Firestore の生データを Todo ドメインモデルへ変換
-- 不正なデータの場合 `INVALID_DATA` をスロー
+#### 方針
 
----
-
-### saveTodo
-
-```ts
-saveTodo({ body: string }): Promise<Todo>
-```
-
-- Todo を新規作成
-- 空文字の場合 `REQUIRED`
-- 保存後に再取得し、整形済みデータを返却
+- **責務をまたぐテストは書かない**
+- 表示確認は `getByText`
+- 非表示確認は `queryByText`
+- Redux を使うテストでは `renderWithStore` を共通化
 
 ---
 
-### fetchTodos
+## 現在の実装状況
 
-```ts
-fetchTodos(): Promise<Todo[]>
-```
-
-- Firestore 上の Todo 一覧を取得
-- データが存在しない場合は空配列を返却
-- 不正なデータが含まれる場合は例外をスロー
-
----
-
-### deleteTodo
-
-```ts
-deleteTodo(id: string): Promise<Todo>
-```
-
-- 削除前に対象データを取得
-- 存在しない場合 `NOT_FOUND`
-- 削除に成功した Todo を返却
-
----
-
-### toggleTodo
-
-```ts
-toggleTodo(id: string): Promise<Todo>
-```
-
-- completed フラグを反転
-- 対象が存在しない場合 `NOT_FOUND`
-
----
-
-## テスト方針
-
-### 単体テストの目的
-
-- Model が **正しいデータのみを返す** ことを保証
-- 外部 SDK の失敗をすべて吸収できているかを確認
-- 副作用（削除・更新）が誤って発生しないことを検証
-
----
-
-### テストの特徴
-
-- Firestore SDK はすべて mock
-- 実装詳細ではなく **振る舞い** を検証
-- エラーは message ではなく `code` でアサート
-
-```js
-await expect(fetchTodos()).rejects.toMatchObject({
-  code: MODEL_ERROR_CODE.UNKNOWN,
-});
-```
-
----
-
-## 今後の予定
-
-- Redux Toolkit による状態管理の実装
-- Thunk 層では Model を完全に mock してテスト
-- UI コンポーネントの追加
+- [x] Todo CRUD
+- [x] フィルタリング
+- [x] 非同期処理
+- [x] Snackbar によるエラー通知
+- [x] コンポーネント / Hook / Redux のテスト
+- [ ] UI（CSS）の調整
+- [ ] E2E テスト（将来対応）
 
 ---
 
 ## 補足
 
-本プロジェクトでは、
-**実装より先にテスト可能な設計を行うこと** を重視しています。
+本プロジェクトは **学習・ポートフォリオ用途**を想定しており、
+「なぜこの設計にしたか」「どこをテストしているか」を説明できる構成を意識しています。
 
-Model 層でドメインを守ることで、
-Redux や UI 層をシンプルに保つことを目的としています。
+---

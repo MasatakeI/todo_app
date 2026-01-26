@@ -5,7 +5,8 @@ import {
   saveTodoAsync,
   fetchTodosAsync,
   deleteTodoAsync,
-  toggleTodoAsync,
+  toggleCompletedAsync,
+  togglePinAsync,
 } from "@/redux/features/todos/todosThunks";
 
 import { mockTodos, newTodo } from "../fixtures/todoFixture";
@@ -14,7 +15,8 @@ import {
   deleteTodo,
   fetchTodos,
   saveTodo,
-  toggleTodo,
+  toggleCompleted,
+  togglePin,
 } from "@/models/TodoModel";
 import { mapTodoErrorToModelError } from "@/redux/features/todos/mapTodoErrorToModelError";
 import { showSnackbar } from "@/redux/features/snackbar/snackbarSlice";
@@ -23,7 +25,8 @@ vi.mock("@/models/TodoModel", () => ({
   saveTodo: vi.fn(),
   fetchTodos: vi.fn(),
   deleteTodo: vi.fn(),
-  toggleTodo: vi.fn(),
+  toggleCompleted: vi.fn(),
+  togglePin: vi.fn(),
 }));
 
 vi.mock("@/redux/features/todos/mapTodoErrorToModelError", () => ({
@@ -78,13 +81,22 @@ describe("TodoThunks", () => {
         snackbarMessage: `${targetTodo.body}を削除しました`,
       },
       {
-        title: "toggleTodo",
-        fn: toggleTodo,
+        title: "toggleCompleted",
+        fn: toggleCompleted,
         arg: targetTodo.id,
-        thunk: toggleTodoAsync,
+        thunk: toggleCompletedAsync,
         params: { id: targetTodo.id },
         expected: { ...targetTodo, completed: !targetTodo.completed },
         snackbarMessage: `${targetTodo.body}を完了に切り替えました`,
+      },
+      {
+        title: "togglePin",
+        fn: togglePin,
+        arg: targetTodo.id,
+        thunk: togglePinAsync,
+        params: { id: targetTodo.id },
+        expected: { ...targetTodo, pinned: !targetTodo.pinned },
+        snackbarMessage: `${targetTodo.body}を固定に切り替えました`,
       },
     ])(
       "$title",
@@ -128,9 +140,15 @@ describe("TodoThunks", () => {
         params: { id: mockTodos.find((todo) => todo.id === 1) },
       },
       {
-        title: "toggleTodo",
-        fn: toggleTodo,
-        thunk: toggleTodoAsync,
+        title: "toggleCompleted",
+        fn: toggleCompleted,
+        thunk: toggleCompletedAsync,
+        params: { id: mockTodos.find((todo) => todo.id === 1) },
+      },
+      {
+        title: "togglePin",
+        fn: togglePin,
+        thunk: togglePinAsync,
         params: { id: mockTodos.find((todo) => todo.id === 1) },
       },
     ])("$title", async ({ fn, thunk, params }) => {

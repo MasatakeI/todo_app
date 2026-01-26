@@ -15,32 +15,40 @@ import { todosInitialState } from "@/redux/features/todos/todosSlice";
 //ヘルパー関数
 
 describe("selectFilteredTodos", () => {
-  describe("filterTypeによってフィルタリングされたtodosを返す", () => {
+  describe("filterType に応じた絞り込み", () => {
     test.each([
-      { title: "FILTER_ALL", type: FILTER_ALL, todos: mockTodos },
+      {
+        title: "FILTER_ALL",
+        type: FILTER_ALL,
+        expected: mockTodos,
+      },
       {
         title: "FILTER_ACTIVE",
         type: FILTER_ACTIVE,
-        todos: mockTodos.filter((todo) => !todo.completed),
+        expected: mockTodos.filter((todo) => !todo.completed),
       },
       {
         title: "FILTER_COMPLETED",
         type: FILTER_COMPLETED,
-        todos: mockTodos.filter((todo) => todo.completed),
+        expected: mockTodos.filter((todo) => todo.completed),
       },
       {
         title: "無効なtype",
         type: "AAA_BBB",
-        todos: mockTodos,
+        expected: mockTodos,
       },
-    ])("$title の時", ({ type, todos }) => {
+    ])("$title の時", ({ type, expected }) => {
       const prev = {
         todos: { ...todosInitialState, todos: mockTodos },
         filter: { filterType: type },
       };
 
       const result = selectFilteredTodos(prev);
-      expect(result).toEqual(todos);
+
+      expect(result).toHaveLength(expected.length);
+      expect(result.map((t) => t.id)).toEqual(
+        expect.arrayContaining(expected.map((t) => t.id)),
+      );
     });
     test("todosが空でもエラーにならない", () => {
       const prev = {
@@ -49,7 +57,17 @@ describe("selectFilteredTodos", () => {
       };
 
       const result = selectFilteredTodos(prev);
-      expect(result).toEqual([]);
+      expect(result.map((t) => t.id)).toEqual([]);
     });
+  });
+
+  test("pinned を優先し、同一 pinned 内では date の降順で並ぶ", () => {
+    const state = {
+      todos: { ...todosInitialState, todos: mockTodos },
+      filter: { filterType: FILTER_ALL },
+    };
+
+    const result = selectFilteredTodos(state);
+    expect(result.map((t) => t.id)).toEqual([2, 3, 1]);
   });
 });

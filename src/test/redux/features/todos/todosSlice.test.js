@@ -6,7 +6,8 @@ import {
   saveTodoAsync,
   fetchTodosAsync,
   deleteTodoAsync,
-  toggleTodoAsync,
+  toggleCompletedAsync,
+  togglePinAsync,
 } from "@/redux/features/todos/todosThunks";
 
 import todosSlice, {
@@ -118,12 +119,12 @@ describe("todosSlice", () => {
       });
     });
   });
-  describe("toggleTodoAsync", () => {
+  describe("toggleCompletedAsync", () => {
     const prev = {
       ...todosInitialState,
       todos: mockTodos,
     };
-    const pending = applyPending(todosSlice, toggleTodoAsync, prev);
+    const pending = applyPending(todosSlice, toggleCompletedAsync, prev);
     test("fulfilled時:isTogglingをfalseに戻し指定したtodoオブジェクトのcompletedを反転してtodo配列を設定する", async () => {
       expect(pending).toEqual({
         ...prev,
@@ -134,7 +135,40 @@ describe("todosSlice", () => {
 
       const fulfilled = applyFulfilled(
         todosSlice,
-        toggleTodoAsync,
+        toggleCompletedAsync,
+        targetTodo,
+        pending,
+      );
+
+      const expectedTodos = mockTodos.map((todo) =>
+        todo.id === targetTodo.id ? targetTodo : todo,
+      );
+
+      expect(fulfilled).toEqual({
+        ...pending,
+        isToggling: false,
+        todos: expectedTodos,
+        error: null,
+      });
+    });
+  });
+  describe("togglePinAsync", () => {
+    const prev = {
+      ...todosInitialState,
+      todos: mockTodos,
+    };
+    const pending = applyPending(todosSlice, togglePinAsync, prev);
+    test("fulfilled時:isTogglingをfalseに戻し指定したtodoオブジェクトのpinnedを反転してtodo配列を設定する", async () => {
+      expect(pending).toEqual({
+        ...prev,
+        isToggling: true,
+      });
+
+      const targetTodo = mockTodos[0];
+
+      const fulfilled = applyFulfilled(
+        todosSlice,
+        togglePinAsync,
         targetTodo,
         pending,
       );
@@ -156,7 +190,8 @@ describe("todosSlice", () => {
     saveTodoAsync,
     fetchTodosAsync,
     deleteTodoAsync,
-    toggleTodoAsync,
+    toggleCompletedAsync,
+    togglePinAsync,
   ])("rejected共通処理", (fn) => {
     test(`${fn.typePrefix}`, () => {
       const error = {
@@ -173,6 +208,7 @@ describe("todosSlice", () => {
         isLoading: false,
         isDeleting: false,
         isToggling: false,
+
         error: error,
       });
     });

@@ -4,7 +4,8 @@ import {
   fetchTodos,
   deleteTodo,
   saveTodo,
-  toggleTodo,
+  togglePin,
+  toggleCompleted,
 } from "@/models/TodoModel";
 import { createModelThunk } from "../utils/createModelThunk";
 import { showSnackbar } from "../snackbar/snackbarSlice";
@@ -48,16 +49,31 @@ export const deleteTodoAsync = createModelThunk(
   },
 );
 
-export const toggleTodoAsync = createModelThunk(
-  "todos/toggleTodo",
+export const toggleCompletedAsync = createModelThunk(
+  "todos/toggleCompleted",
   async ({ id }, thunkApi) => {
     try {
-      const todo = await toggleTodo(id);
+      const todo = await toggleCompleted(id);
 
       const toggleText = todo.completed ? "完了に" : "未完了に";
       thunkApi.dispatch(
         showSnackbar(`${todo.body}を${toggleText}切り替えました`),
       );
+
+      return todo;
+    } catch (error) {
+      throw mapTodoErrorToModelError(error);
+    }
+  },
+);
+export const togglePinAsync = createModelThunk(
+  "todos/togglePin",
+  async ({ id }, thunkApi) => {
+    try {
+      const todo = await togglePin(id);
+
+      const pinText = todo.pinned ? "固定に" : "未固定に";
+      thunkApi.dispatch(showSnackbar(`${todo.body}を${pinText}切り替えました`));
 
       return todo;
     } catch (error) {

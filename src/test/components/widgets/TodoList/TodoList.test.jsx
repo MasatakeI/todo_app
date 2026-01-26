@@ -64,6 +64,7 @@ describe("TodoList", () => {
       preloadedState: {
         todos: {
           isLoading: true,
+          todos: mockTodos,
         },
         filter: {
           filterType: FILTER_ALL,

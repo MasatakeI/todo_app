@@ -20,6 +20,7 @@ const TodoList = () => {
     openModal,
     confirmDelete,
     toggleTodo,
+    togglePin,
   } = useTodoList();
 
   const messagesContent = () => {
@@ -30,22 +31,21 @@ const TodoList = () => {
 
     return (
       <>
-        {filteredTodos
-          .slice()
-          .reverse()
-          .map((todo) => {
-            return (
-              <TodoCard
-                key={todo.id}
-                body={todo.body}
-                date={todo.date}
-                id={todo.id}
-                completed={todo.completed}
-                onDelete={openModal}
-                onToggle={toggleTodo}
-              />
-            );
-          })}
+        {filteredTodos.map((todo) => {
+          return (
+            <TodoCard
+              key={todo.id}
+              body={todo.body}
+              date={todo.date}
+              id={todo.id}
+              pinned={todo.pinned}
+              completed={todo.completed}
+              onDelete={openModal}
+              onToggle={toggleTodo}
+              onPin={togglePin}
+            />
+          );
+        })}
       </>
     );
   };

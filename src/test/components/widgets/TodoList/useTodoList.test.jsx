@@ -67,9 +67,9 @@ describe("useTodoList", () => {
     });
   });
 
-  test("toggleTodo:正しいpayloadでdispatchされる", async () => {
+  test("toggleCompleted:正しいpayloadでdispatchされる", async () => {
     const spy = vi
-      .spyOn(todosThunks, "toggleTodoAsync")
+      .spyOn(todosThunks, "toggleCompletedAsync")
       .mockImplementation(() => () => ({
         unwrap: () => Promise.resolve(),
       }));
