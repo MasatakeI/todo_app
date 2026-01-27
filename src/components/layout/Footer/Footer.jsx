@@ -15,7 +15,7 @@ const Footer = () => {
         <div className="footer-links">
           <Tooltip title="GitHubページへ">
             <a
-              href="https://github.com/MasatakeI/email_authentication.git"
+              href="https://github.com/MasatakeI/todo_app.git"
               target="_blank"
               rel="noopener noreferrer"
               className="github-link"
