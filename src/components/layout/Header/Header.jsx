@@ -18,7 +18,7 @@ const Header = () => {
   return (
     <div className={`header ${isScrolled ? "scrolled" : ""}`}>
       <div to="/" className="logo" aria-label="ホームへ戻る">
-        Todoaアプリ
+        Todoアプリ
       </div>
     </div>
   );
