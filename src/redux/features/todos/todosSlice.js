@@ -4,9 +4,10 @@ import { createSlice, isRejectedWithValue } from "@reduxjs/toolkit";
 import {
   deleteTodoAsync,
   fetchTodosAsync,
-  saveTodoAsync,
+  addTodoAsync,
   togglePinAsync,
   toggleCompletedAsync,
+  toggleImportantAsync,
 } from "./todosThunks";
 
 export const todosInitialState = {
@@ -26,10 +27,10 @@ const todosSlice = createSlice({
     builder
 
       //saveTodo
-      .addCase(saveTodoAsync.pending, (state, action) => {
+      .addCase(addTodoAsync.pending, (state, action) => {
         state.canPost = false;
       })
-      .addCase(saveTodoAsync.fulfilled, (state, action) => {
+      .addCase(addTodoAsync.fulfilled, (state, action) => {
         state.canPost = true;
         state.todos.push(action.payload);
         state.error = null;
@@ -74,6 +75,18 @@ const todosSlice = createSlice({
         state.isToggling = true;
       })
       .addCase(togglePinAsync.fulfilled, (state, action) => {
+        state.isToggling = false;
+        state.todos = state.todos.map((todo) =>
+          todo.id === action.payload.id ? action.payload : todo,
+        );
+        state.error = null;
+      })
+
+      //toggleImportant
+      .addCase(toggleImportantAsync.pending, (state, action) => {
+        state.isToggling = true;
+      })
+      .addCase(toggleImportantAsync.fulfilled, (state, action) => {
         state.isToggling = false;
         state.todos = state.todos.map((todo) =>
           todo.id === action.payload.id ? action.payload : todo,

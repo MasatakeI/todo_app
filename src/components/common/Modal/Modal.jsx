@@ -14,10 +14,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function Modal({ isOpen, onClose, title, message, onConfirm }) {
-  const handleClose = () => {
-    onClose();
-  };
-
   return (
     <React.Fragment>
       <Dialog
@@ -25,8 +21,7 @@ export default function Modal({ isOpen, onClose, title, message, onConfirm }) {
         slots={{
           transition: Transition,
         }}
-        keepMounted
-        onClose={handleClose}
+        onClose={onClose}
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle>{title}</DialogTitle>
@@ -36,7 +31,7 @@ export default function Modal({ isOpen, onClose, title, message, onConfirm }) {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>キャンセル</Button>
+          <Button onClick={onClose}>キャンセル</Button>
           <Button onClick={onConfirm}>削除</Button>
         </DialogActions>
       </Dialog>

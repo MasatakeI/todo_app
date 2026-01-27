@@ -10,7 +10,7 @@ import { renderWithStore } from "@/test/utils/renderWithStore";
 
 import * as todosThunks from "@/redux/features/todos/todosThunks";
 
-const spy = vi.spyOn(todosThunks, "saveTodoAsync");
+const spy = vi.spyOn(todosThunks, "addTodoAsync");
 
 describe("TextBox", () => {
   beforeEach(() => {

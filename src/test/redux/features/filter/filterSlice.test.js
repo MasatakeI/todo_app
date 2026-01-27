@@ -4,6 +4,8 @@ import {
   FILTER_ALL,
   FILTER_ACTIVE,
   FILTER_COMPLETED,
+  FILTER_PINNED,
+  FILTER_IMPORTANT,
 } from "@/redux/features/utils/filterType";
 
 import filterSlice, {
@@ -19,15 +21,18 @@ describe("filterSlice", () => {
       filterType: FILTER_ALL,
     });
   });
-  describe("reducer:setFilterType", () => {
-    test.each([FILTER_ALL, FILTER_ACTIVE, FILTER_COMPLETED])(
-      `有効なfilterTypeの時,指定されたfilterTypeを設定する -%s`,
-      (type) => {
-        const action = setFilterType(type);
-        const state = filterSlice(filterInitialState, action);
-        expect(state.filterType).toBe(type);
-      },
-    );
+  describe("reducer:setFilterType:有効なfilterTypeの時,指定されたfilterTypeを設定する", () => {
+    test.each([
+      FILTER_ALL,
+      FILTER_ACTIVE,
+      FILTER_COMPLETED,
+      FILTER_PINNED,
+      FILTER_IMPORTANT,
+    ])(` -%s`, (type) => {
+      const action = setFilterType(type);
+      const state = filterSlice(filterInitialState, action);
+      expect(state.filterType).toBe(type);
+    });
     test("無効なfilterTypeの時,filterTypeは変更しない", () => {
       const action = setFilterType("@@@@@@");
       const state = filterSlice(filterInitialState, action);

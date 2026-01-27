@@ -11,6 +11,7 @@ import {
   deleteTodoAsync,
   togglePinAsync,
   toggleCompletedAsync,
+  toggleImportantAsync,
 } from "@/redux/features/todos/todosThunks";
 
 export const useTodoList = () => {
@@ -47,6 +48,10 @@ export const useTodoList = () => {
     dispatch(togglePinAsync({ id }));
   };
 
+  const toggleImportant = (id) => {
+    dispatch(toggleImportantAsync({ id }));
+  };
+
   return {
     isLoading,
     error,
@@ -58,5 +63,6 @@ export const useTodoList = () => {
     confirmDelete,
     toggleTodo,
     togglePin,
+    toggleImportant,
   };
 };

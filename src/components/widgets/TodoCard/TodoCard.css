@@ -2,16 +2,21 @@
   background-color: aliceblue;
   border-radius: 5px;
   padding: 10px;
-  margin: 10px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.todo-card.pinned {
-  border: 1px solid red;
+.todo-card.is-pinned {
+  border: 4px solid rgb(6, 157, 244);
+  background-color: #f0f8ff;
 }
 
-.todo-card.completed {
+.todo-card.is-completed {
   background-color: #eee;
   font-style: italic;
+}
+
+.todo-card.is-completed.is-pinned {
+  border-left-color: #999;
 }
 
 .todo-header {
@@ -32,15 +37,31 @@
   cursor: pointer;
 }
 
+.todo-button:focus-visible {
+  outline: 2px solid rgb(6, 157, 244);
+  outline-offset: 12px;
+}
+
+.todo-button:active {
+  transform: scale(0.92);
+}
+
 .todo-button.delete:hover {
   color: red;
 }
-.todo-button.toggle:hover {
+.todo-button.completed:hover,
+.todo-card.is-completed .todo-button.completed {
   color: green;
 }
 
-.todo-button.pinned:hover {
+.todo-button:hover,
+.todo-card.is-pinned .todo-button.pin {
   color: rgb(6, 157, 244);
+}
+
+.todo-button.important:hover,
+.todo-card.is-important .todo-button.important {
+  color: gold;
 }
 
 .todo-body {
@@ -49,7 +70,7 @@
   letter-spacing: 0.05rem;
 }
 
-.todo-body.completed,
-.todo-date.completed {
+.todo-body.is-completed,
+.todo-date.is-completed {
   text-decoration: red line-through;
 }

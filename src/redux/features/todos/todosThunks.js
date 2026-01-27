@@ -3,19 +3,20 @@
 import {
   fetchTodos,
   deleteTodo,
-  saveTodo,
+  addTodo,
   togglePin,
   toggleCompleted,
+  toggleImportant,
 } from "@/models/TodoModel";
 import { createModelThunk } from "../utils/createModelThunk";
 import { showSnackbar } from "../snackbar/snackbarSlice";
 import { mapTodoErrorToModelError } from "./mapTodoErrorToModelError";
 
-export const saveTodoAsync = createModelThunk(
+export const addTodoAsync = createModelThunk(
   "todos/saveTodo",
   async ({ body }, thunkApi) => {
     try {
-      const todo = await saveTodo({ body });
+      const todo = await addTodo({ body });
       thunkApi.dispatch(showSnackbar(`${todo.body}を追加しました`));
       return todo;
     } catch (error) {
@@ -74,6 +75,25 @@ export const togglePinAsync = createModelThunk(
 
       const pinText = todo.pinned ? "固定に" : "未固定に";
       thunkApi.dispatch(showSnackbar(`${todo.body}を${pinText}切り替えました`));
+
+      return todo;
+    } catch (error) {
+      throw mapTodoErrorToModelError(error);
+    }
+  },
+);
+
+export const toggleImportantAsync = createModelThunk(
+  "todos/toggleImportant",
+  async ({ id }, thunkApi) => {
+    try {
+      const todo = await toggleImportant(id);
+
+      const importantText = todo.important
+        ? "重要にしました"
+        : "重要解除しました";
+
+      thunkApi.dispatch(showSnackbar(`${todo.body}を${importantText}`));
 
       return todo;
     } catch (error) {

@@ -20,12 +20,8 @@ import { format } from "date-fns";
 export const createTodo = (id, data) => {
   if (
     !data ||
-    !data.body ||
-    !data.date ||
     typeof data.body !== "string" ||
-    typeof data.date.toDate !== "function" ||
-    typeof data.completed !== "boolean" ||
-    typeof data.pinned !== "boolean"
+    typeof data.date?.toDate !== "function"
   ) {
     throw new ModelError(MODEL_ERROR_CODE.INVALID_DATA);
   }
@@ -35,12 +31,13 @@ export const createTodo = (id, data) => {
     id,
     body: data.body,
     date: dateObj,
-    completed: data.completed,
-    pinned: data.pinned,
+    completed: data.completed ?? false,
+    pinned: data.pinned ?? false,
+    important: data.important ?? false,
   };
 };
 
-export const saveTodo = async ({ body }) => {
+export const addTodo = async ({ body }) => {
   if (!body.trim()) {
     throw new ModelError(MODEL_ERROR_CODE.REQUIRED, "1文字以上の入力必須です");
   }
@@ -50,6 +47,7 @@ export const saveTodo = async ({ body }) => {
     date: serverTimestamp(),
     completed: false,
     pinned: false,
+    important: false,
   };
 
   const docRef = await addDoc(todosCollectionRef, postData);
@@ -93,7 +91,7 @@ export const deleteTodo = async (id) => {
   return model;
 };
 
-export const toggleCompleted = async (id) => {
+const toggleField = async (id, field) => {
   const docRef = doc(todosCollectionRef, id);
 
   const snapShot = await getDoc(docRef);
@@ -104,31 +102,25 @@ export const toggleCompleted = async (id) => {
 
   const data = snapShot.data();
 
-  await updateDoc(docRef, { completed: !data.completed });
+  const currentValue = data[field] ?? false;
+  const updateValue = !currentValue;
+
+  await updateDoc(docRef, { [field]: updateValue });
 
   const model = createTodo(docRef.id, {
     ...data,
-    completed: !data.completed,
+    [field]: updateValue,
   });
   return model;
 };
 
+export const toggleCompleted = async (id) => {
+  return toggleField(id, "completed");
+};
 export const togglePin = async (id) => {
-  const docRef = doc(todosCollectionRef, id);
+  return toggleField(id, "pinned");
+};
 
-  const snapShot = await getDoc(docRef);
-
-  if (!snapShot.exists()) {
-    throw new ModelError(MODEL_ERROR_CODE.NOT_FOUND);
-  }
-
-  const data = snapShot.data();
-
-  await updateDoc(docRef, { pinned: !data.pinned });
-
-  const model = createTodo(docRef.id, {
-    ...data,
-    pinned: !data.pinned,
-  });
-  return model;
+export const toggleImportant = async (id) => {
+  return toggleField(id, "important");
 };

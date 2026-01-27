@@ -8,6 +8,8 @@ import {
   FILTER_ACTIVE,
   FILTER_ALL,
   FILTER_COMPLETED,
+  FILTER_PINNED,
+  FILTER_IMPORTANT,
 } from "@/redux/features/utils/filterType";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -20,17 +22,19 @@ const Filter = () => {
   const filterType = useSelector(selectFilterType);
 
   const filterButtons = [
-    { id: 1, type: FILTER_ALL, text: "すべて表示" },
-    { id: 2, type: FILTER_ACTIVE, text: "未完了のみ表示" },
-    { id: 3, type: FILTER_COMPLETED, text: "完了のみ表示" },
+    { type: FILTER_ALL, text: "すべて" },
+    { type: FILTER_IMPORTANT, text: "重要" },
+    { type: FILTER_PINNED, text: "固定" },
+    { type: FILTER_ACTIVE, text: "未完了" },
+    { type: FILTER_COMPLETED, text: "完了" },
   ];
   return (
     <div className="filter">
-      {filterButtons.map((btn) => {
+      {filterButtons.map((btn, index) => {
         const isActive = filterType === btn.type;
         return (
           <Button
-            key={btn.id}
+            key={index}
             onClickHandler={() => dispatch(setFilterType(btn.type))}
             variant={isActive ? "secondary" : "tertiary"}
             isActive={isActive}

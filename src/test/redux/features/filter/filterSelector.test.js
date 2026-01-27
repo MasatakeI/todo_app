@@ -9,6 +9,8 @@ import {
   FILTER_ACTIVE,
   FILTER_ALL,
   FILTER_COMPLETED,
+  FILTER_PINNED,
+  FILTER_IMPORTANT,
 } from "@/redux/features/utils/filterType";
 import { todosInitialState } from "@/redux/features/todos/todosSlice";
 
@@ -31,6 +33,16 @@ describe("selectFilteredTodos", () => {
         title: "FILTER_COMPLETED",
         type: FILTER_COMPLETED,
         expected: mockTodos.filter((todo) => todo.completed),
+      },
+      {
+        title: "FILTER_PINNED",
+        type: FILTER_PINNED,
+        expected: mockTodos.filter((todo) => todo.pinned),
+      },
+      {
+        title: "FILTER_IMPORTANT",
+        type: FILTER_IMPORTANT,
+        expected: mockTodos.filter((todo) => todo.important),
       },
       {
         title: "無効なtype",

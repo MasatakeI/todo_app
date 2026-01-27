@@ -10,6 +10,8 @@ import {
   FILTER_ACTIVE,
   FILTER_ALL,
   FILTER_COMPLETED,
+  FILTER_IMPORTANT,
+  FILTER_PINNED,
 } from "@/redux/features/utils/filterType";
 
 import { renderWithStore } from "@/test/utils/renderWithStore";
@@ -80,6 +82,11 @@ describe("TodoList", () => {
   describe("指定されたfilterTypeのtodoのみ表示される", () => {
     test.each([
       {
+        title: "FILTER_ALL",
+        type: FILTER_ALL,
+        displayedTodos: mockTodos,
+      },
+      {
         title: "FILTER_ACTIVE",
         type: FILTER_ACTIVE,
         displayedTodos: mockTodos.filter((todo) => !todo.completed),
@@ -90,6 +97,18 @@ describe("TodoList", () => {
         type: FILTER_COMPLETED,
         displayedTodos: mockTodos.filter((todo) => todo.completed),
         notDisplayedTodos: mockTodos.filter((todo) => !todo.completed),
+      },
+      {
+        title: "FILTER_PINNED",
+        type: FILTER_PINNED,
+        displayedTodos: mockTodos.filter((todo) => todo.pinned),
+        notDisplayedTodos: mockTodos.filter((todo) => !todo.pinned),
+      },
+      {
+        title: "FILTER_IMPORTANT",
+        type: FILTER_IMPORTANT,
+        displayedTodos: mockTodos.filter((todo) => todo.important),
+        notDisplayedTodos: mockTodos.filter((todo) => !todo.important),
       },
     ])("$title の時", ({ type, displayedTodos, notDisplayedTodos }) => {
       renderWithStore(<TodoList />, {
@@ -103,9 +122,11 @@ describe("TodoList", () => {
       displayedTodos.forEach((todo) => {
         expect(screen.getByText(todo.body)).toBeInTheDocument();
       });
-      notDisplayedTodos.forEach((todo) => {
-        expect(screen.queryByText(todo.body)).not.toBeInTheDocument();
-      });
+      if (notDisplayedTodos) {
+        notDisplayedTodos.forEach((todo) => {
+          expect(screen.queryByText(todo.body)).not.toBeInTheDocument();
+        });
+      }
     });
   });
 

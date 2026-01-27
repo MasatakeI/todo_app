@@ -2,11 +2,12 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 
 import {
-  saveTodoAsync,
+  addTodoAsync,
   fetchTodosAsync,
   deleteTodoAsync,
   toggleCompletedAsync,
   togglePinAsync,
+  toggleImportantAsync,
 } from "@/redux/features/todos/todosThunks";
 
 import { mockTodos, newTodo } from "../fixtures/todoFixture";
@@ -14,19 +15,21 @@ import { MODEL_ERROR_CODE, ModelError } from "@/models/errors/ModelError";
 import {
   deleteTodo,
   fetchTodos,
-  saveTodo,
+  addTodo,
   toggleCompleted,
   togglePin,
+  toggleImportant,
 } from "@/models/TodoModel";
 import { mapTodoErrorToModelError } from "@/redux/features/todos/mapTodoErrorToModelError";
 import { showSnackbar } from "@/redux/features/snackbar/snackbarSlice";
 
 vi.mock("@/models/TodoModel", () => ({
-  saveTodo: vi.fn(),
+  addTodo: vi.fn(),
   fetchTodos: vi.fn(),
   deleteTodo: vi.fn(),
   toggleCompleted: vi.fn(),
   togglePin: vi.fn(),
+  toggleImportant: vi.fn(),
 }));
 
 vi.mock("@/redux/features/todos/mapTodoErrorToModelError", () => ({
@@ -44,61 +47,108 @@ const callThunk = async (thunk, params) =>
 const dispatch = vi.fn();
 const getState = vi.fn();
 
+const targetTodo = mockTodos.find((todo) => todo.id === 1);
+
+const SUCCESS_CASES = [
+  {
+    title: "addTodo",
+    fn: addTodo,
+    arg: { body: newTodo.body },
+    thunk: addTodoAsync,
+    params: { body: newTodo.body },
+    expected: newTodo,
+    snackbarMessage: `${newTodo.body}を追加しました`,
+  },
+  {
+    title: "fetchTodo",
+    fn: fetchTodos,
+    arg: undefined,
+    thunk: fetchTodosAsync,
+    params: undefined,
+    expected: mockTodos,
+    snackbarMessage: undefined,
+  },
+
+  {
+    title: "deleteTodo",
+    fn: deleteTodo,
+    arg: targetTodo.id,
+    thunk: deleteTodoAsync,
+    params: { id: targetTodo.id },
+    expected: targetTodo,
+    snackbarMessage: `${targetTodo.body}を削除しました`,
+  },
+  {
+    title: "toggleCompleted",
+    fn: toggleCompleted,
+    arg: targetTodo.id,
+    thunk: toggleCompletedAsync,
+    params: { id: targetTodo.id },
+    expected: { ...targetTodo, completed: !targetTodo.completed },
+    snackbarMessage: `${targetTodo.body}を完了に切り替えました`,
+  },
+  {
+    title: "togglePin",
+    fn: togglePin,
+    arg: targetTodo.id,
+    thunk: togglePinAsync,
+    params: { id: targetTodo.id },
+    expected: { ...targetTodo, pinned: !targetTodo.pinned },
+    snackbarMessage: `${targetTodo.body}を固定に切り替えました`,
+  },
+  {
+    title: "toggleImportant",
+    fn: toggleImportant,
+    arg: targetTodo.id,
+    thunk: toggleImportantAsync,
+    params: { id: targetTodo.id },
+    expected: { ...targetTodo, important: !targetTodo.important },
+    snackbarMessage: `${targetTodo.body}を重要にしました`,
+  },
+];
+
+const FAIL_CASES = [
+  {
+    title: "addTodo",
+    fn: addTodo,
+    thunk: addTodoAsync,
+    params: { body: newTodo.body },
+  },
+
+  { title: "fetchTodos", fn: fetchTodos, thunk: fetchTodosAsync },
+  {
+    title: "deleteTodo",
+    fn: deleteTodo,
+    thunk: deleteTodoAsync,
+    params: { id: mockTodos.find((todo) => todo.id === 1) },
+  },
+  {
+    title: "toggleCompleted",
+    fn: toggleCompleted,
+    thunk: toggleCompletedAsync,
+    params: { id: mockTodos.find((todo) => todo.id === 1) },
+  },
+  {
+    title: "togglePin",
+    fn: togglePin,
+    thunk: togglePinAsync,
+    params: { id: mockTodos.find((todo) => todo.id === 1) },
+  },
+  {
+    title: "toggleImportant",
+    fn: toggleImportant,
+    thunk: toggleImportantAsync,
+    params: { id: mockTodos.find((todo) => todo.id === 1) },
+  },
+];
+
 describe("TodoThunks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("成功時:thunkはmodelを呼び,payloadを返し,副作用をdispatchする", () => {
-    const targetTodo = mockTodos.find((todo) => todo.id === 1);
-    test.each([
-      {
-        title: "saveTodo",
-        fn: saveTodo,
-        arg: { body: newTodo.body },
-        thunk: saveTodoAsync,
-        params: { body: newTodo.body },
-        expected: newTodo,
-        snackbarMessage: `${newTodo.body}を追加しました`,
-      },
-      {
-        title: "fetchTodo",
-        fn: fetchTodos,
-        arg: undefined,
-        thunk: fetchTodosAsync,
-        params: undefined,
-        expected: mockTodos,
-        snackbarMessage: undefined,
-      },
-
-      {
-        title: "deleteTodo",
-        fn: deleteTodo,
-        arg: targetTodo.id,
-        thunk: deleteTodoAsync,
-        params: { id: targetTodo.id },
-        expected: targetTodo,
-        snackbarMessage: `${targetTodo.body}を削除しました`,
-      },
-      {
-        title: "toggleCompleted",
-        fn: toggleCompleted,
-        arg: targetTodo.id,
-        thunk: toggleCompletedAsync,
-        params: { id: targetTodo.id },
-        expected: { ...targetTodo, completed: !targetTodo.completed },
-        snackbarMessage: `${targetTodo.body}を完了に切り替えました`,
-      },
-      {
-        title: "togglePin",
-        fn: togglePin,
-        arg: targetTodo.id,
-        thunk: togglePinAsync,
-        params: { id: targetTodo.id },
-        expected: { ...targetTodo, pinned: !targetTodo.pinned },
-        snackbarMessage: `${targetTodo.body}を固定に切り替えました`,
-      },
-    ])(
+    test.each(SUCCESS_CASES)(
       "$title",
       async ({ fn, arg, thunk, params, expected, snackbarMessage }) => {
         mockSuccess(fn, expected);
@@ -124,34 +174,7 @@ describe("TodoThunks", () => {
   });
 
   describe("失敗:ModelErrorの場合,rejectWithValueのpayloadを返す", () => {
-    test.each([
-      {
-        title: "saveTodo",
-        fn: saveTodo,
-        thunk: saveTodoAsync,
-        params: { body: newTodo.body },
-      },
-
-      { title: "fetchTodos", fn: fetchTodos, thunk: fetchTodosAsync },
-      {
-        title: "deleteTodo",
-        fn: deleteTodo,
-        thunk: deleteTodoAsync,
-        params: { id: mockTodos.find((todo) => todo.id === 1) },
-      },
-      {
-        title: "toggleCompleted",
-        fn: toggleCompleted,
-        thunk: toggleCompletedAsync,
-        params: { id: mockTodos.find((todo) => todo.id === 1) },
-      },
-      {
-        title: "togglePin",
-        fn: togglePin,
-        thunk: togglePinAsync,
-        params: { id: mockTodos.find((todo) => todo.id === 1) },
-      },
-    ])("$title", async ({ fn, thunk, params }) => {
+    test.each(FAIL_CASES)("$title", async ({ fn, thunk, params }) => {
       const normalizedError = new ModelError(
         MODEL_ERROR_CODE.NETWORK,
         "エラー",

@@ -2,11 +2,12 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import {
   createTodo,
-  saveTodo,
+  addTodo,
   fetchTodos,
   deleteTodo,
   toggleCompleted,
   togglePin,
+  toggleImportant,
 } from "@/models/TodoModel";
 
 import { ModelError, MODEL_ERROR_CODE } from "@/models/errors/ModelError";
@@ -42,6 +43,7 @@ const mockSnapShot = {
     date: { toDate: () => new Date("2020-01-01T12:00:00") },
     completed: false,
     pinned: false,
+    important: false,
   }),
 };
 
@@ -50,6 +52,7 @@ const baseData = {
   date: { toDate: () => new Date("2020-01-01T12:00:00") },
   completed: false,
   pinned: false,
+  important: false,
 };
 
 describe("TodoModel", () => {
@@ -69,6 +72,7 @@ describe("TodoModel", () => {
         date: "2020/01/01 12:00",
         completed: false,
         pinned: false,
+        important: false,
       });
     });
 
@@ -77,6 +81,7 @@ describe("TodoModel", () => {
       const brokenData = {
         ...baseData,
         completed: "@@@@@",
+        date: true,
       };
 
       expect(() => createTodo(id, brokenData)).toThrow(
@@ -85,12 +90,12 @@ describe("TodoModel", () => {
     });
   });
 
-  describe("saveTodo", () => {
+  describe("addTodo", () => {
     test("成功:保存したtodoオブジェクトを返す", async () => {
       addDoc.mockResolvedValue(mockDocRef);
       getDoc.mockResolvedValue(mockSnapShot);
 
-      const result = await saveTodo({ body: mockSnapShot.data().body });
+      const result = await addTodo({ body: mockSnapShot.data().body });
 
       expect(result).toEqual({
         id: "123",
@@ -98,11 +103,12 @@ describe("TodoModel", () => {
         date: "2020/01/01 12:00",
         completed: false,
         pinned: false,
+        important: false,
       });
     });
 
     test("bodyが空の場合:ModelErrorをスローする", async () => {
-      await expect(saveTodo({ body: " " })).rejects.toThrow(
+      await expect(addTodo({ body: " " })).rejects.toThrow(
         new ModelError(MODEL_ERROR_CODE.REQUIRED, "1文字以上の入力必須です"),
       );
     });
@@ -111,13 +117,13 @@ describe("TodoModel", () => {
       addDoc.mockRejectedValue(new ModelError("addDoc error"));
       getDoc.mockResolvedValue(mockSnapShot);
 
-      await expect(saveTodo({ body: "aa" })).rejects.toBeInstanceOf(ModelError);
+      await expect(addTodo({ body: "aa" })).rejects.toBeInstanceOf(ModelError);
     });
     test("getDocが失敗の場合", async () => {
       addDoc.mockResolvedValue(mockDocRef);
       getDoc.mockRejectedValue(new ModelError("getDoc error"));
 
-      await expect(saveTodo({ body: "aa" })).rejects.toMatchObject({
+      await expect(addTodo({ body: "aa" })).rejects.toMatchObject({
         code: MODEL_ERROR_CODE.UNKNOWN,
       });
     });
@@ -126,7 +132,7 @@ describe("TodoModel", () => {
       addDoc.mockResolvedValue(mockDocRef);
       getDoc.mockResolvedValue({ exists: () => false });
 
-      await expect(saveTodo({ body: "aa" })).rejects.toThrow(
+      await expect(addTodo({ body: "aa" })).rejects.toThrow(
         new ModelError(MODEL_ERROR_CODE.NOT_FOUND),
       );
     });
@@ -153,6 +159,7 @@ describe("TodoModel", () => {
           date: "2020/01/01 12:00",
           completed: false,
           pinned: false,
+          important: false,
         },
       ]);
 
@@ -179,7 +186,7 @@ describe("TodoModel", () => {
     test("不正なデータが含まれる場合,ModelErrorをスローする", async () => {
       const brokenData = {
         ...baseData,
-        completed: "@@@",
+        date: true,
       };
       query.mockReturnValue(mockQuery);
       getDocs.mockResolvedValue({
@@ -210,6 +217,7 @@ describe("TodoModel", () => {
         date: "2020/01/01 12:00",
         completed: false,
         pinned: false,
+        important: false,
       });
       expect(doc).toHaveBeenCalledTimes(1);
 
@@ -264,6 +272,7 @@ describe("TodoModel", () => {
         date: "2020/01/01 12:00",
         completed: true,
         pinned: false,
+        important: false,
       });
 
       expect(getDoc).toHaveBeenCalledWith(mockDocRef);
@@ -313,6 +322,7 @@ describe("TodoModel", () => {
         date: "2020/01/01 12:00",
         completed: false,
         pinned: true,
+        important: false,
       });
 
       expect(getDoc).toHaveBeenCalledWith(mockDocRef);

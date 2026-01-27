@@ -3,11 +3,12 @@
 import { describe, test, expect } from "vitest";
 
 import {
-  saveTodoAsync,
+  addTodoAsync,
   fetchTodosAsync,
   deleteTodoAsync,
   toggleCompletedAsync,
   togglePinAsync,
+  toggleImportantAsync,
 } from "@/redux/features/todos/todosThunks";
 
 import todosSlice, {
@@ -38,169 +39,205 @@ describe("todosSlice", () => {
       isToggling: false,
     });
   });
+  describe("fulfilled", () => {
+    describe("addTodoAsync", () => {
+      const pending = applyPending(todosSlice, addTodoAsync);
+      test("canPostをtrueに戻しtodoを追加する", async () => {
+        expect(pending).toEqual({
+          ...todosInitialState,
+          canPost: false,
+        });
 
-  describe("saveTodoAsync", () => {
-    const pending = applyPending(todosSlice, saveTodoAsync);
-    test("fulfilled時:canPostをtrueに戻しtodoを追加する", async () => {
-      expect(pending).toEqual({
-        ...todosInitialState,
-        canPost: false,
-      });
+        const fulfilled = applyFulfilled(
+          todosSlice,
+          addTodoAsync,
+          newTodo,
+          pending,
+        );
 
-      const fulfilled = applyFulfilled(
-        todosSlice,
-        saveTodoAsync,
-        newTodo,
-        pending,
-      );
-
-      expect(fulfilled).toEqual({
-        ...pending,
-        canPost: true,
-        error: null,
-        todos: [newTodo],
+        expect(fulfilled).toEqual({
+          ...pending,
+          canPost: true,
+          error: null,
+          todos: [newTodo],
+        });
       });
     });
-  });
 
-  describe("fetchTodosAsync", () => {
-    const pending = applyPending(todosSlice, fetchTodosAsync);
-    test("fulfilled時:isLoadingをfalseに戻しtodosを取得する", async () => {
-      expect(pending).toEqual({
-        ...todosInitialState,
-        isLoading: true,
+    describe("fetchTodosAsync", () => {
+      const pending = applyPending(todosSlice, fetchTodosAsync);
+      test("isLoadingをfalseに戻しtodosを取得する", async () => {
+        expect(pending).toEqual({
+          ...todosInitialState,
+          isLoading: true,
+        });
+
+        const fulfilled = applyFulfilled(
+          todosSlice,
+          fetchTodosAsync,
+          mockTodos,
+          pending,
+        );
+        expect(fulfilled).toEqual({
+          ...pending,
+          isLoading: false,
+          todos: mockTodos,
+          error: null,
+        });
       });
+    });
 
-      const fulfilled = applyFulfilled(
-        todosSlice,
-        fetchTodosAsync,
-        mockTodos,
-        pending,
-      );
-      expect(fulfilled).toEqual({
-        ...pending,
-        isLoading: false,
+    describe("deleteTodoAsync", () => {
+      const prev = {
+        ...todosInitialState,
         todos: mockTodos,
-        error: null,
+      };
+      const pending = applyPending(todosSlice, deleteTodoAsync, prev);
+
+      test("isDeletingをfalseに戻し指定したtodoオブジェクトをtodos配列から削除する", async () => {
+        expect(pending).toEqual({
+          ...prev,
+          isDeleting: true,
+        });
+
+        const targetTodo = mockTodos[0];
+
+        const fulfilled = applyFulfilled(
+          todosSlice,
+          deleteTodoAsync,
+          targetTodo,
+          pending,
+        );
+
+        const expectedTodos = mockTodos.filter(
+          (todo) => todo.id !== targetTodo.id,
+        );
+        expect(fulfilled).toEqual({
+          ...pending,
+          isDeleting: false,
+          todos: expectedTodos,
+          error: null,
+        });
+      });
+    });
+    describe("toggleCompletedAsync", () => {
+      const prev = {
+        ...todosInitialState,
+        todos: mockTodos,
+      };
+      const pending = applyPending(todosSlice, toggleCompletedAsync, prev);
+      test("isTogglingをfalseに戻し指定したtodoオブジェクトのcompletedを反転してtodo配列を設定する", async () => {
+        expect(pending).toEqual({
+          ...prev,
+          isToggling: true,
+        });
+
+        const targetTodo = mockTodos[0];
+
+        const fulfilled = applyFulfilled(
+          todosSlice,
+          toggleCompletedAsync,
+          targetTodo,
+          pending,
+        );
+
+        const expectedTodos = mockTodos.map((todo) =>
+          todo.id === targetTodo.id ? targetTodo : todo,
+        );
+
+        expect(fulfilled).toEqual({
+          ...pending,
+          isToggling: false,
+          todos: expectedTodos,
+          error: null,
+        });
+      });
+    });
+    describe("togglePinAsync", () => {
+      const prev = {
+        ...todosInitialState,
+        todos: mockTodos,
+      };
+      const pending = applyPending(todosSlice, togglePinAsync, prev);
+      test("isTogglingをfalseに戻し指定したtodoオブジェクトのpinnedを反転してtodo配列を設定する", async () => {
+        expect(pending).toEqual({
+          ...prev,
+          isToggling: true,
+        });
+
+        const targetTodo = mockTodos[0];
+
+        const fulfilled = applyFulfilled(
+          todosSlice,
+          togglePinAsync,
+          targetTodo,
+          pending,
+        );
+
+        const expectedTodos = mockTodos.map((todo) =>
+          todo.id === targetTodo.id ? targetTodo : todo,
+        );
+
+        expect(fulfilled).toEqual({
+          ...pending,
+          isToggling: false,
+          todos: expectedTodos,
+          error: null,
+        });
+      });
+    });
+
+    describe("toggleImportantAsync", () => {
+      const prev = {
+        ...todosInitialState,
+        todos: mockTodos,
+      };
+      const pending = applyPending(todosSlice, toggleImportantAsync, prev);
+      test("isTogglingをfalseに戻し指定したtodoオブジェクトのimportantを反転してtodo配列を設定する", async () => {
+        expect(pending).toEqual({
+          ...prev,
+          isToggling: true,
+        });
+
+        const targetTodo = mockTodos[0];
+
+        const fulfilled = applyFulfilled(
+          todosSlice,
+          toggleImportantAsync,
+          targetTodo,
+          pending,
+        );
+
+        const expectedTodos = mockTodos.map((todo) =>
+          todo.id === targetTodo.id ? targetTodo : todo,
+        );
+
+        expect(fulfilled).toEqual({
+          ...pending,
+          isToggling: false,
+          todos: expectedTodos,
+          error: null,
+        });
       });
     });
   });
 
-  describe("deleteTodoAsync", () => {
-    const prev = {
-      ...todosInitialState,
-      todos: mockTodos,
-    };
-    const pending = applyPending(todosSlice, deleteTodoAsync, prev);
-
-    test("fulfilled時:isDeletingをfalseに戻し指定したtodoオブジェクトをtodos配列から削除する", async () => {
-      expect(pending).toEqual({
-        ...prev,
-        isDeleting: true,
-      });
-
-      const targetTodo = mockTodos[0];
-
-      const fulfilled = applyFulfilled(
-        todosSlice,
-        deleteTodoAsync,
-        targetTodo,
-        pending,
-      );
-
-      const expectedTodos = mockTodos.filter(
-        (todo) => todo.id !== targetTodo.id,
-      );
-      expect(fulfilled).toEqual({
-        ...pending,
-        isDeleting: false,
-        todos: expectedTodos,
-        error: null,
-      });
-    });
-  });
-  describe("toggleCompletedAsync", () => {
-    const prev = {
-      ...todosInitialState,
-      todos: mockTodos,
-    };
-    const pending = applyPending(todosSlice, toggleCompletedAsync, prev);
-    test("fulfilled時:isTogglingをfalseに戻し指定したtodoオブジェクトのcompletedを反転してtodo配列を設定する", async () => {
-      expect(pending).toEqual({
-        ...prev,
-        isToggling: true,
-      });
-
-      const targetTodo = mockTodos[0];
-
-      const fulfilled = applyFulfilled(
-        todosSlice,
-        toggleCompletedAsync,
-        targetTodo,
-        pending,
-      );
-
-      const expectedTodos = mockTodos.map((todo) =>
-        todo.id === targetTodo.id ? targetTodo : todo,
-      );
-
-      expect(fulfilled).toEqual({
-        ...pending,
-        isToggling: false,
-        todos: expectedTodos,
-        error: null,
-      });
-    });
-  });
-  describe("togglePinAsync", () => {
-    const prev = {
-      ...todosInitialState,
-      todos: mockTodos,
-    };
-    const pending = applyPending(todosSlice, togglePinAsync, prev);
-    test("fulfilled時:isTogglingをfalseに戻し指定したtodoオブジェクトのpinnedを反転してtodo配列を設定する", async () => {
-      expect(pending).toEqual({
-        ...prev,
-        isToggling: true,
-      });
-
-      const targetTodo = mockTodos[0];
-
-      const fulfilled = applyFulfilled(
-        todosSlice,
-        togglePinAsync,
-        targetTodo,
-        pending,
-      );
-
-      const expectedTodos = mockTodos.map((todo) =>
-        todo.id === targetTodo.id ? targetTodo : todo,
-      );
-
-      expect(fulfilled).toEqual({
-        ...pending,
-        isToggling: false,
-        todos: expectedTodos,
-        error: null,
-      });
-    });
-  });
-
-  describe.each([
-    saveTodoAsync,
-    fetchTodosAsync,
-    deleteTodoAsync,
-    toggleCompletedAsync,
-    togglePinAsync,
-  ])("rejected共通処理", (fn) => {
-    test(`${fn.typePrefix}`, () => {
+  describe("rejected共通処理", () => {
+    test.each([
+      { title: "addTodoAsync", thunk: addTodoAsync },
+      { title: "fetchTodosAsync", thunk: fetchTodosAsync },
+      { title: "deleteTodoAsync", thunk: deleteTodoAsync },
+      { title: "toggleCompletedAsync", thunk: toggleCompletedAsync },
+      { title: "togglePinAsync", thunk: togglePinAsync },
+      { title: "toggleImportantAsync", thunk: toggleImportantAsync },
+    ])(`$title `, ({ thunk }) => {
       const error = {
         code: MODEL_ERROR_CODE.NETWORK,
         message: `失敗`,
       };
-      const pending = applyPending(todosSlice, fn);
+      const pending = applyPending(todosSlice, thunk);
 
-      const rejected = applyRejected(todosSlice, fn, error, pending);
+      const rejected = applyRejected(todosSlice, thunk, error, pending);
 
       expect(rejected).toEqual({
         ...pending,

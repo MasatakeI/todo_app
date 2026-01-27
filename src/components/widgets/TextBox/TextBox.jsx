@@ -6,7 +6,7 @@ import Button from "@/components/common/Button/Button";
 
 import { useDispatch, useSelector } from "react-redux";
 import { selectCanPost } from "@/redux/features/todos/todosSelector";
-import { saveTodoAsync } from "@/redux/features/todos/todosThunks";
+import { addTodoAsync } from "@/redux/features/todos/todosThunks";
 
 const TextBox = () => {
   const dispatch = useDispatch();
@@ -15,7 +15,7 @@ const TextBox = () => {
   const [body, setBody] = useState("");
 
   const post = async () => {
-    await dispatch(saveTodoAsync({ body })).unwrap();
+    await dispatch(addTodoAsync({ body })).unwrap();
     setBody("");
   };
 

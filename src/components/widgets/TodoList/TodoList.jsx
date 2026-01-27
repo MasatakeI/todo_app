@@ -9,6 +9,9 @@ import LoadingSpinner from "@/components/common/LoadingSpinner/LoadingSpinner";
 
 import { useTodoList } from "./useTodoList";
 
+import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+
 const TodoList = () => {
   const {
     isLoading,
@@ -21,32 +24,44 @@ const TodoList = () => {
     confirmDelete,
     toggleTodo,
     togglePin,
+    toggleImportant,
   } = useTodoList();
 
   const messagesContent = () => {
-    if (isLoading) return <LoadingSpinner />;
+    if (isLoading) {
+      return (
+        <div>
+          <LoadingSpinner aria-label="loading" />
+        </div>
+      );
+    }
 
     if (filteredTodos.length === 0)
-      return <p className="no-message">todos:0件</p>;
+      return <p className="no-message">該当する Todo がありません</p>;
 
     return (
-      <>
-        {filteredTodos.map((todo) => {
-          return (
-            <TodoCard
-              key={todo.id}
-              body={todo.body}
-              date={todo.date}
-              id={todo.id}
-              pinned={todo.pinned}
-              completed={todo.completed}
-              onDelete={openModal}
-              onToggle={toggleTodo}
-              onPin={togglePin}
-            />
-          );
-        })}
-      </>
+      <Box sx={{ flexGrow: 3 }}>
+        <Grid container spacing={2}>
+          {filteredTodos.map((todo) => {
+            return (
+              <Grid size={{ xs: 12, md: 6 }} key={todo.id}>
+                <TodoCard
+                  body={todo.body}
+                  date={todo.date}
+                  id={todo.id}
+                  pinned={todo.pinned}
+                  completed={todo.completed}
+                  important={todo.important}
+                  onDelete={openModal}
+                  onToggle={toggleTodo}
+                  onPin={togglePin}
+                  onImportant={toggleImportant}
+                />
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
     );
   };
 

@@ -1,4 +1,4 @@
-import { screen, fireEvent } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import Filter from "@/components/widgets/Filter/Filter";
 import filterReducer from "@/redux/features/filter/filterSlice";
@@ -6,9 +6,29 @@ import {
   FILTER_ACTIVE,
   FILTER_ALL,
   FILTER_COMPLETED,
+  FILTER_IMPORTANT,
+  FILTER_PINNED,
 } from "@/redux/features/utils/filterType";
 
 import { renderWithStore } from "@/test/utils/renderWithStore";
+import userEvent from "@testing-library/user-event";
+
+const FILTER_CASES = [
+  { type: FILTER_ALL, text: "すべて" },
+  { type: FILTER_ACTIVE, text: "未完了" },
+  { type: FILTER_COMPLETED, text: "完了" },
+  { type: FILTER_PINNED, text: "固定" },
+  { type: FILTER_IMPORTANT, text: "重要" },
+];
+
+const renderFilter = (filterType = FILTER_ALL) => {
+  return renderWithStore(<Filter />, {
+    reducers: { filter: filterReducer },
+    preloadedState: {
+      filter: { filterType },
+    },
+  });
+};
 
 describe("Filter", () => {
   beforeEach(() => {
@@ -16,48 +36,35 @@ describe("Filter", () => {
   });
 
   test("フィルターボタンが表示される", () => {
-    renderWithStore(<Filter />, {
-      reducers: { filter: filterReducer },
-      preloadedState: {
-        filter: { filterType: FILTER_ALL },
-      },
+    renderFilter();
+    FILTER_CASES.forEach(({ text }) => {
+      expect(screen.getByText(text)).toBeInTheDocument();
     });
-
-    expect(screen.getByText("すべて表示")).toBeInTheDocument();
-    expect(screen.getByText("完了のみ表示")).toBeInTheDocument();
-    expect(screen.getByText("未完了のみ表示")).toBeInTheDocument();
   });
 
-  test("filterTypeを変更するとsetFilterTypeがdispatchされる", () => {
-    const { dispatchSpy } = renderWithStore(<Filter />, {
-      reducers: {
-        filter: filterReducer,
-      },
-      preloadedState: {
-        filter: { filterType: FILTER_ACTIVE },
-      },
+  describe("フィルターボタンをクリックするとフィルターが変更される", () => {
+    test.each(FILTER_CASES)("$type", async ({ type, text }) => {
+      const { dispatchSpy } = renderFilter(type);
+
+      const user = userEvent.setup();
+
+      await user.click(screen.getByText(text));
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "filter/setFilterType",
+          payload: type,
+        }),
+      );
     });
-
-    fireEvent.click(screen.getByText("すべて表示"));
-
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "filter/setFilterType",
-        payload: FILTER_ALL,
-      }),
-    );
   });
 
-  test("選択中のフィルターボタンがactiveになる", () => {
-    renderWithStore(<Filter />, {
-      reducers: { filter: filterReducer },
-      preloadedState: { filter: { filterType: FILTER_COMPLETED } },
+  describe("選択中のフィルターボタンがactiveになる", () => {
+    test.each(FILTER_CASES)("$type", ({ type, text }) => {
+      renderFilter(type);
+      const activeButton = screen.getByText(text);
+
+      expect(activeButton).toHaveAttribute("aria-pressed", "true");
     });
-
-    const activeButton = screen.getByText("完了のみ表示");
-    const inactiveButton = screen.getByText("すべて表示");
-
-    expect(activeButton).toHaveAttribute("aria-pressed", "true");
-    expect(inactiveButton).toHaveAttribute("aria-pressed", "false");
   });
 });
